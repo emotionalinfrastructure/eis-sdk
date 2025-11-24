@@ -1,0 +1,35 @@
+# Source files (only dist/ should be published)
+src/
+tests/
+
+# Configuration files
+tsconfig.json
+jest.config.js
+.eslintrc.js
+typedoc.json
+
+# CI/CD
+.github/
+run-checks.sh
+
+# Documentation (except README.md which is in files array)
+docs/
+
+# Logs
+ci-local-logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test coverage
+coverage/
+
+# Git
+.git/
+.gitignore

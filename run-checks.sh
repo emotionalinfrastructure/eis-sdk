@@ -18,7 +18,7 @@ npm_ci() {
 
 type_check() {
     echo "Running TypeScript type checking..."
-    npm run typecheck &> "$LOG_DIR/typecheck.log"
+    npm run type-check &> "$LOG_DIR/typecheck.log"
 }
 
 build() {

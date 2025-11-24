@@ -1,0 +1,8 @@
+{
+  "entryPoints": ["src/index.ts"],
+  "out": "docs",
+  "includeVersion": true,
+  "name": "Emotional Infrastructure™ SDK",
+  "excludePrivate": true,
+  "excludeProtected": true
+}

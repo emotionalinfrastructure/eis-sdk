@@ -1,1 +1,38 @@
-{"name": "eis-sdk", "version": "0.1.1", "description": "Emotional Infrastructure™ SDK – consent lifecycle, immutable audit logs, tolerance windows, and trust repair analytics for behavioral attribution in AI systems.", "main": "dist/index.js", "types": "dist/index.d.ts", "scripts": {"build": "tsc", "type-check": "tsc --noEmit", "lint": "eslint .", "test": "jest", "coverage": "jest --coverage"}, "repository": {"type": "git", "url": "https://github.com/Emotional-Infrastructure/eis-sdk.git"}, "author": "Brittany Wright", "license": "MIT", "devDependencies": {"typescript": "^4.4.4", "jest": "^27.0.0", "eslint": "^7.28.0", "@typescript-eslint/parser": "^4.28.0", "@typescript-eslint/eslint-plugin": "^4.28.0"}}
+{
+  "name": "eis-sdk",
+  "version": "0.1.1",
+  "description": "Emotional Infrastructure™ SDK – consent lifecycle, immutable audit logs, tolerance windows, and trust repair analytics for behavioral attribution in AI systems.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "jest",
+    "coverage": "jest --coverage",
+    "docs": "typedoc --out docs src/index.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Emotional-Infrastructure/eis-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Emotional-Infrastructure/eis-sdk/issues"
+  },
+  "homepage": "https://github.com/Emotional-Infrastructure/eis-sdk#readme",
+  "author": "Brittany Wright",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.4.4",
+    "jest": "^27.0.0",
+    "eslint": "^7.28.0",
+    "@typescript-eslint/parser": "^4.28.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.0",
+    "typedoc": "^0.23.0"
+  }
+}
