@@ -9,8 +9,9 @@
  * @returns A cryptographically unique CTID string
  */
 export function generateCTID(): string {
-  // Placeholder implementation
-  return `ctid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  // Placeholder implementation - uses timestamp and random string
+  // TODO: In production, use crypto.randomBytes() or crypto.randomUUID() for cryptographic uniqueness
+  return `ctid-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 }
 
 /**
