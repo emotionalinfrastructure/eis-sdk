@@ -2,6 +2,28 @@
 
 The Emotional Infrastructure Software Development Kit (EIS SDK) implements the EIS v1.1 standard for consent lifecycle management, emotional signal monitoring, audit logging, and trust repair metrics.
 
+## v0.1.1 Release Status
+
+This repository is **ready for v0.1.1 release**. See [Deployment Summary](docs/DEPLOYMENT-SUMMARY.md) for complete details.
+
+### ✅ Completed
+- Package configuration for npm publication
+- Complete documentation (CONTRIBUTING.md, engineering policy, release notes)
+- CI/CD workflows with coverage enforcement
+- SDK source code and comprehensive tests (38 tests, 100% coverage)
+- Security scan passed (CodeQL)
+- All quality gates passing
+
+### 📋 User Actions Required
+1. Merge PR to Main branch
+2. Create git tag: `git tag -a v0.1.1 -m "EIS-SDK v0.1.1"`
+3. Create GitHub Release from tag
+4. Publish to npm: `npm publish --access public`
+
+See [docs/DEPLOYMENT-SUMMARY.md](docs/DEPLOYMENT-SUMMARY.md) for step-by-step instructions.
+
+---
+
 ## Local Verification Checklist
 
 Run the full local verification suite before opening a PR:
