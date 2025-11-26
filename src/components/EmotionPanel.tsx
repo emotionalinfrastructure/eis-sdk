@@ -8,50 +8,7 @@
 
 import React from 'react';
 import type { EmotionPanelProps } from '../types';
-
-/**
- * Returns a textual label describing the integrity level.
- * 
- * @param value - The integrity value (0-100)
- * @returns A human-readable description of the integrity level
- */
-function getIntegrityLabel(value: number): string {
-  if (value < 20) {
-    return 'Severely Impaired';
-  }
-  if (value < 40) {
-    return 'Critically Low';
-  }
-  if (value < 60) {
-    return 'Moderately Reduced';
-  }
-  if (value < 80) {
-    return 'Slightly Reduced';
-  }
-  return 'Optimal';
-}
-
-/**
- * Returns a color class based on integrity level for accessibility.
- * 
- * @param value - The integrity value (0-100)
- * @returns A Tailwind CSS color class
- */
-function getIntegrityColorClass(value: number): string {
-  if (value < 20) {
-    return 'text-red-600';
-  }
-  if (value < 40) {
-    return 'text-orange-500';
-  }
-  if (value < 60) {
-    return 'text-yellow-600';
-  }
-  if (value < 80) {
-    return 'text-yellow-500';
-  }
-  return 'text-green-600';
-}
+import { getIntegrityLabel, getIntegrityColorClass } from '../lib/stability';
 
 /**
  * EmotionPanel displays the Emotional Regulatory Gland (ERG) integrity.

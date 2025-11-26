@@ -6,6 +6,8 @@ import {
   calculateIntegrity,
   getSystemState,
   isCoupled,
+  getIntegrityLabel,
+  getIntegrityColorClass,
   SYSTEM_STATE_DESCRIPTIONS,
   SYSTEM_STATE_COLORS,
 } from '../src/lib/stability';
@@ -124,6 +126,70 @@ describe('stability helpers', () => {
       expect(SYSTEM_STATE_COLORS.critical).toBeDefined();
       expect(SYSTEM_STATE_COLORS.narrowed).toBeDefined();
       expect(SYSTEM_STATE_COLORS.stable).toBeDefined();
+    });
+  });
+
+  describe('getIntegrityLabel', () => {
+    it('returns Severely Impaired for values below 20', () => {
+      expect(getIntegrityLabel(0)).toBe('Severely Impaired');
+      expect(getIntegrityLabel(10)).toBe('Severely Impaired');
+      expect(getIntegrityLabel(19)).toBe('Severely Impaired');
+    });
+
+    it('returns Critically Low for values 20-39', () => {
+      expect(getIntegrityLabel(20)).toBe('Critically Low');
+      expect(getIntegrityLabel(30)).toBe('Critically Low');
+      expect(getIntegrityLabel(39)).toBe('Critically Low');
+    });
+
+    it('returns Moderately Reduced for values 40-59', () => {
+      expect(getIntegrityLabel(40)).toBe('Moderately Reduced');
+      expect(getIntegrityLabel(50)).toBe('Moderately Reduced');
+      expect(getIntegrityLabel(59)).toBe('Moderately Reduced');
+    });
+
+    it('returns Slightly Reduced for values 60-79', () => {
+      expect(getIntegrityLabel(60)).toBe('Slightly Reduced');
+      expect(getIntegrityLabel(70)).toBe('Slightly Reduced');
+      expect(getIntegrityLabel(79)).toBe('Slightly Reduced');
+    });
+
+    it('returns Optimal for values 80 and above', () => {
+      expect(getIntegrityLabel(80)).toBe('Optimal');
+      expect(getIntegrityLabel(90)).toBe('Optimal');
+      expect(getIntegrityLabel(100)).toBe('Optimal');
+    });
+  });
+
+  describe('getIntegrityColorClass', () => {
+    it('returns text-red-600 for values below 20', () => {
+      expect(getIntegrityColorClass(0)).toBe('text-red-600');
+      expect(getIntegrityColorClass(10)).toBe('text-red-600');
+      expect(getIntegrityColorClass(19)).toBe('text-red-600');
+    });
+
+    it('returns text-orange-500 for values 20-39', () => {
+      expect(getIntegrityColorClass(20)).toBe('text-orange-500');
+      expect(getIntegrityColorClass(30)).toBe('text-orange-500');
+      expect(getIntegrityColorClass(39)).toBe('text-orange-500');
+    });
+
+    it('returns text-yellow-600 for values 40-59', () => {
+      expect(getIntegrityColorClass(40)).toBe('text-yellow-600');
+      expect(getIntegrityColorClass(50)).toBe('text-yellow-600');
+      expect(getIntegrityColorClass(59)).toBe('text-yellow-600');
+    });
+
+    it('returns text-yellow-500 for values 60-79', () => {
+      expect(getIntegrityColorClass(60)).toBe('text-yellow-500');
+      expect(getIntegrityColorClass(70)).toBe('text-yellow-500');
+      expect(getIntegrityColorClass(79)).toBe('text-yellow-500');
+    });
+
+    it('returns text-green-600 for values 80 and above', () => {
+      expect(getIntegrityColorClass(80)).toBe('text-green-600');
+      expect(getIntegrityColorClass(90)).toBe('text-green-600');
+      expect(getIntegrityColorClass(100)).toBe('text-green-600');
     });
   });
 });

@@ -152,3 +152,61 @@ export const SYSTEM_STATE_COLORS: Record<SystemState, string> = {
   narrowed: 'text-yellow-500',
   stable: 'text-green-600',
 };
+
+/**
+ * Returns a textual label describing the integrity level.
+ * Used for accessibility and colorblind-friendly display.
+ * 
+ * @param value - The integrity value (0-100)
+ * @returns A human-readable description of the integrity level
+ * 
+ * @example
+ * ```typescript
+ * getIntegrityLabel(85); // Returns 'Optimal'
+ * getIntegrityLabel(10); // Returns 'Severely Impaired'
+ * ```
+ */
+export function getIntegrityLabel(value: number): string {
+  if (value < 20) {
+    return 'Severely Impaired';
+  }
+  if (value < 40) {
+    return 'Critically Low';
+  }
+  if (value < 60) {
+    return 'Moderately Reduced';
+  }
+  if (value < 80) {
+    return 'Slightly Reduced';
+  }
+  return 'Optimal';
+}
+
+/**
+ * Returns a color class based on integrity level for accessibility.
+ * Uses Tailwind CSS color classes.
+ * 
+ * @param value - The integrity value (0-100)
+ * @returns A Tailwind CSS color class
+ * 
+ * @example
+ * ```typescript
+ * getIntegrityColorClass(85); // Returns 'text-green-600'
+ * getIntegrityColorClass(10); // Returns 'text-red-600'
+ * ```
+ */
+export function getIntegrityColorClass(value: number): string {
+  if (value < 20) {
+    return 'text-red-600';
+  }
+  if (value < 40) {
+    return 'text-orange-500';
+  }
+  if (value < 60) {
+    return 'text-yellow-600';
+  }
+  if (value < 80) {
+    return 'text-yellow-500';
+  }
+  return 'text-green-600';
+}
