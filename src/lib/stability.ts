@@ -97,9 +97,9 @@ export function getSystemState(integrity: Integrity): SystemState {
 
   if (minIntegrity < 20) {
     return 'fractured';
-  } else if (minIntegrity >= 20 && minIntegrity < 40) {
+  } else if (minIntegrity < 40) {
     return 'critical';
-  } else if (minIntegrity >= 40 && minIntegrity < 80) {
+  } else if (minIntegrity < 80) {
     return 'narrowed';
   } else {
     return 'stable';
