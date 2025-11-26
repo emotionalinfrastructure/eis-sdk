@@ -27,14 +27,28 @@
   "homepage": "https://github.com/Emotional-Infrastructure/eis-sdk#readme",
   "author": "Brittany Wright",
   "license": "MIT",
+  "peerDependencies": {
+    "react": ">=17.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
   "devDependencies": {
-    "typescript": "^4.4.4",
-    "jest": "^27.0.0",
-    "ts-jest": "^27.0.0",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^14.0.0",
     "@types/jest": "^27.0.0",
-    "eslint": "^7.28.0",
-    "@typescript-eslint/parser": "^4.28.0",
+    "@types/react": "^18.3.27",
     "@typescript-eslint/eslint-plugin": "^4.28.0",
-    "typedoc": "^0.23.0"
+    "@typescript-eslint/parser": "^4.28.0",
+    "eslint": "^7.28.0",
+    "jest": "^27.0.0",
+    "jest-environment-jsdom": "^27.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "ts-jest": "^27.0.0",
+    "typedoc": "^0.23.0",
+    "typescript": "^4.4.4"
   }
 }
