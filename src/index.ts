@@ -19,3 +19,8 @@ export * from './repair/trustDelta';
 
 // Client interface
 export * from './client';
+
+// Cognitive Stability System
+export * from './lib/stability';
+export * from './types';
+export * from './components';
