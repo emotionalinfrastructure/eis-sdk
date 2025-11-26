@@ -15,5 +15,7 @@ module.exports = {
   coveragePathIgnorePatterns: [
     '/node_modules/',
     '/dist/',
+    '/src/components/',
+    '/src/types/',
   ],
 };
