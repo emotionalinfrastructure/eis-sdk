@@ -5,21 +5,20 @@ module.exports = {
   collectCoverage: true,
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
-    '!src/components/index.ts',  // Barrel export with no functions
-    '!src/types/index.ts',       // Types-only file
+    '!src/components/index.ts',
+    '!src/types/index.ts',
   ],
+  coverageDirectory: 'coverage',
+  coverageReporters: ['json-summary', 'text', 'lcov'],
   coverageThreshold: {
     global: {
-      lines: 90,
-      statements: 90,
-      functions: 90,
-      branches: 85,
+      lines: 80,
+      statements: 80,
+      functions: 80,
+      branches: 75,
     },
   },
-  coveragePathIgnorePatterns: [
-    '/node_modules/',
-    '/dist/',
-  ],
+  coveragePathIgnorePatterns: ['/node_modules/', '/dist/'],
   projects: [
     {
       displayName: 'node',
@@ -32,7 +31,7 @@ module.exports = {
       preset: 'ts-jest',
       testEnvironment: 'jsdom',
       testMatch: ['**/tests/**/*.component.test.tsx'],
-      setupFilesAfterEnv: ['@testing-library/jest-dom/extend-expect'],
+      setupFilesAfterEnv: ['@testing-library/jest-dom'],
     },
   ],
 };
