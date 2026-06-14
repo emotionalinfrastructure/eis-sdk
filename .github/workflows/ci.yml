@@ -38,7 +38,7 @@ jobs:
 
       - name: Guard — no static node:crypto imports in dist
         run: |
-          if grep -R -nE '^(import .* from ["\']node:crypto["\']|const .* = require\(["\']node:crypto["\']\))' dist; then
+          if grep -REn "from [\"'](node:)?crypto[\"']|require\([\"'](node:)?crypto[\"']\)" dist; then
             echo "ERROR: static node:crypto import found in dist/"
             exit 1
           fi
