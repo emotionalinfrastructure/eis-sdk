@@ -1,0 +1,48 @@
+name: EmotionalOS
+options:
+  bundleIdPrefix: org.emotionalinfrastructure
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    CODE_SIGNING_ALLOWED: NO
+    CODE_SIGNING_REQUIRED: NO
+targets:
+  EmotionalOS:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources/EmotionalOS
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: org.emotionalinfrastructure.EmotionalOS
+        INFOPLIST_KEY_CFBundleDisplayName: Emotional Infrastructure OS
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+    resources:
+      - path: SupportingFiles/PrivacyInfo.xcprivacy
+        buildPhase: resources
+  EmotionalOSTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/EmotionalOSTests
+    dependencies:
+      - target: EmotionalOS
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: org.emotionalinfrastructure.EmotionalOSTests
+schemes:
+  EmotionalOS:
+    build:
+      targets:
+        EmotionalOS: all
+        EmotionalOSTests: [test]
+    test:
+      targets:
+        - EmotionalOSTests
