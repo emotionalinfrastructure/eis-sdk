@@ -1,0 +1,28 @@
+name: Swift Console CI
+
+on:
+  push:
+    branches: [main, Main]
+    paths:
+      - 'swift/console/**'
+  pull_request:
+    branches: [main, Main]
+    paths:
+      - 'swift/console/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        working-directory: swift/console
+        run: swift build -c release
+
+      - name: Test
+        working-directory: swift/console
+        run: swift test
