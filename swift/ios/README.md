@@ -40,6 +40,11 @@ Automated via Fastlane + GitHub Actions (`.github/workflows/ios.yml`):
 - `verify_merkle` lane: runs `xcodebuild test`
 - `testflight` lane: builds and uploads to TestFlight
 
+The `ios.yml` workflow adapts to the project's maturity: while this directory is
+a source scaffold (no `.xcodeproj` yet) it validates the property lists and the
+expected files; once an Xcode project is added it automatically switches to a
+full `xcodebuild build test` on the iOS Simulator.
+
 ## Privacy
 
 `PrivacyInfo.xcprivacy` declares zero tracked data types and `NSPrivacyTracking: false`,
