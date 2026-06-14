@@ -51,10 +51,15 @@ export async function verifySignature(payload: string, secret: string, signature
 }
 
 /** @internal Generate cryptographically-strong random bytes as hex. */
-export function randomBytesHex(length: number): string {
+export async function randomBytesHex(length: number): Promise<string> {
+  // Node ships a global `crypto` only from v19; use node:crypto directly so v18 works too.
+  if (isNode) {
+    const { randomBytes } = await import('node:crypto');
+    return randomBytes(length).toString('hex');
+  }
   const webcrypto = typeof globalThis !== 'undefined' ? globalThis.crypto : undefined;
   if (!webcrypto?.getRandomValues) {
-    throw new Error('EIS-SDK: crypto.getRandomValues is required. Requires Node.js >=19 or a browser.');
+    throw new Error('EIS-SDK: No secure random source available. Requires Node.js >=18 or WebCrypto.');
   }
   const buf = new Uint8Array(length);
   webcrypto.getRandomValues(buf);
