@@ -59,7 +59,7 @@ export async function generateCTID(
   const payload: Omit<ConsentTransactionID, 'signature'> = {
     version: '1.2',
     user_id: opts.userId,
-    session_id: generateSessionId(),
+    session_id: await generateSessionId(),
     timestamp: getISOTimestamp(),
     expiry: getISOExpiry(30),
     data_tiers: opts.dataTiers,

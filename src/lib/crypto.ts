@@ -1,12 +1,12 @@
 const isNode =
   typeof process !== 'undefined' &&
-  (process as any).versions != null &&
-  (process as any).versions.node != null;
+  process.versions != null &&
+  process.versions.node != null;
 
 const hasWebCrypto =
   typeof globalThis !== 'undefined' &&
-  (globalThis as any).crypto != null &&
-  (globalThis as any).crypto.subtle != null;
+  globalThis.crypto != null &&
+  globalThis.crypto.subtle != null;
 
 function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false;
@@ -27,7 +27,7 @@ async function hmacSha256Node(payload: string, secret: string): Promise<string> 
 }
 
 async function hmacSha256Web(payload: string, secret: string): Promise<string> {
-  const subtle = (globalThis as any).crypto.subtle as SubtleCrypto;
+  const subtle = globalThis.crypto.subtle;
   const key = await subtle.importKey(
     'raw',
     new TextEncoder().encode(secret),
@@ -51,12 +51,17 @@ export async function verifySignature(payload: string, secret: string, signature
 }
 
 /** @internal Generate cryptographically-strong random bytes as hex. */
-export function randomBytesHex(length: number): string {
-  const g = globalThis as any;
-  if (!g?.crypto?.getRandomValues) {
-    throw new Error('EIS-SDK: crypto.getRandomValues is required. Requires Node.js >=19 or a browser.');
+export async function randomBytesHex(length: number): Promise<string> {
+  // Node ships a global `crypto` only from v19; use node:crypto directly so v18 works too.
+  if (isNode) {
+    const { randomBytes } = await import('node:crypto');
+    return randomBytes(length).toString('hex');
+  }
+  const webcrypto = typeof globalThis !== 'undefined' ? globalThis.crypto : undefined;
+  if (!webcrypto?.getRandomValues) {
+    throw new Error('EIS-SDK: No secure random source available. Requires Node.js >=18 or WebCrypto.');
   }
   const buf = new Uint8Array(length);
-  g.crypto.getRandomValues(buf);
+  webcrypto.getRandomValues(buf);
   return Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('');
 }

@@ -22,6 +22,6 @@ export function getISOExpiry(days = 30): string {
   return d.toISOString();
 }
 
-export function generateSessionId(): string {
+export function generateSessionId(): Promise<string> {
   return randomBytesHex(12); // 12 bytes → 24 hex chars
 }
