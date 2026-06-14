@@ -1,47 +1,47 @@
-/**
- * EIS SDK Client
- * 
- * High-level client interface for the Emotional Infrastructure™ SDK.
- */
-
-import { generateCTID } from './consent/ctid';
+import { generateCTID, verifyCTID, type ConsentTransactionID, type CTIDGenerationOptions } from './consent/ctid';
 import { ConsentStateMachine, ConsentState } from './consent/stateMachine';
 import { AuditLogger } from './audit/logger';
 import { calculateTrustDelta, TrustMetrics } from './repair/trustDelta';
 
 export interface EISClientConfig {
+  /** HMAC secret used to sign and verify CTIDs. Required. */
+  secret: string;
   auditLogPath?: string;
 }
 
-/**
- * High-level EIS SDK client
- */
 export class EISClient {
+  private secret: string;
   private auditLogger: AuditLogger;
-  
-  constructor(_config: EISClientConfig) {
+
+  constructor(config: EISClientConfig) {
+    this.secret = config.secret;
     this.auditLogger = new AuditLogger();
   }
-  
-  /**
-   * Grants consent and returns a CTID
-   * @param params Consent parameters
-   * @returns Consent transaction ID
-   */
-  async grantConsent(params: { userId: string; scope: string }): Promise<string> {
-    const ctid = generateCTID();
+
+  async grantConsent(params: {
+    userId: string;
+    dataTiers: number[];
+    metadata: CTIDGenerationOptions['metadata'];
+    parentCTID?: string | null;
+  }): Promise<ConsentTransactionID> {
+    const ctid = await generateCTID(this.secret, {
+      userId: params.userId,
+      dataTiers: params.dataTiers,
+      metadata: params.metadata,
+      parentCTID: params.parentCTID,
+    });
     this.auditLogger.log({
       eventType: 'consent-granted',
       userId: params.userId,
-      data: { ctid, scope: params.scope },
+      data: { ctid_session: ctid.session_id, data_tiers: ctid.data_tiers },
     });
     return ctid;
   }
-  
-  /**
-   * Logs an audit event
-   * @param event The event to log
-   */
+
+  async verifyConsent(ctid: ConsentTransactionID): Promise<boolean> {
+    return verifyCTID(ctid, this.secret);
+  }
+
   async logAudit(event: { eventType: string; userId: string; consentId?: string }): Promise<void> {
     this.auditLogger.log({
       eventType: event.eventType,
@@ -49,12 +49,7 @@ export class EISClient {
       data: { consentId: event.consentId },
     });
   }
-  
-  /**
-   * Calculates trust delta
-   * @param params Trust calculation parameters
-   * @returns Trust metrics
-   */
+
   async calculateTrustDelta(params: { userId: string; baseline: number; current: number }): Promise<TrustMetrics> {
     const metrics = calculateTrustDelta(params.baseline, params.current);
     this.auditLogger.log({

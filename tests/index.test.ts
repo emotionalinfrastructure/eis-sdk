@@ -7,7 +7,7 @@ import * as SDK from '../src/index';
 describe('SDK Exports', () => {
   it('should export CTID functions', () => {
     expect(SDK.generateCTID).toBeDefined();
-    expect(SDK.validateCTID).toBeDefined();
+    expect(SDK.verifyCTID).toBeDefined();
   });
   
   it('should export consent state machine', () => {
