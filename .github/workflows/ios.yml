@@ -50,12 +50,16 @@ jobs:
           print(rts[0]['identifier'])
           ")
           DTYPE=$(xcrun simctl list devicetypes --json | python3 -c "
-          import json, sys
+          import json, sys, re
           data = json.load(sys.stdin)
           phones = [d for d in data['devicetypes'] if 'iPhone' in d['name']]
           base = [d for d in phones
                   if 'Plus' not in d['name'] and 'Pro' not in d['name'] and 'Max' not in d['name']]
-          print((base or phones)[-1]['identifier'])
+          def ver(d):
+              m = re.search(r'(\d+)', d['name'])
+              return int(m.group(1)) if m else 0
+          candidates = sorted(base or phones, key=ver, reverse=True)
+          print(candidates[0]['identifier'])
           ")
           echo "Runtime: $RUNTIME"
           echo "Device type: $DTYPE"
