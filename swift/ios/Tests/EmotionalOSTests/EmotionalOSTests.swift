@@ -49,6 +49,34 @@ final class InMemorySessionStore: SessionStore {
     func save(_ state: SessionStoreState) { self.state = state }
 }
 
+/// Deterministic signal source so view-model tests don't depend on sensors.
+final class StubSignalSource: SignalSource {
+    let isLive: Bool
+    private let value: Double
+
+    init(isLive: Bool = false, value: Double = 0.0) {
+        self.isLive = isLive
+        self.value = value
+    }
+
+    func sample(count: Int) -> [Double] {
+        Array(repeating: value, count: max(0, count))
+    }
+}
+
+final class MotionSignalSourceTests: XCTestCase {
+    func testFallbackProducesRequestedCountInRange() {
+        // No motion hardware in the simulator: the source falls back to synthetic.
+        let samples = MotionSignalSource().sample(count: 12)
+        XCTAssertEqual(samples.count, 12)
+        XCTAssertTrue(samples.allSatisfy { $0 >= -1.0 && $0 <= 1.0 })
+    }
+
+    func testSampleOfZeroIsEmpty() {
+        XCTAssertEqual(MotionSignalSource().sample(count: 0), [])
+    }
+}
+
 @MainActor
 final class SessionViewModelTests: XCTestCase {
     func testRunSessionPopulatesState() {
@@ -68,6 +96,14 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(model.history.count, 2)
         XCTAssertGreaterThanOrEqual(model.averageCoherence, 0.0)
         XCTAssertLessThanOrEqual(model.averageCoherence, 1.0)
+    }
+
+    func testRunSessionUsesInjectedSignalSource() {
+        let model = SessionViewModel(store: InMemorySessionStore(),
+                                     signalSource: StubSignalSource(value: 0.5))
+        model.runSession()
+        XCTAssertEqual(model.signals, Array(repeating: 0.5, count: model.sampleCount))
+        XCTAssertFalse(model.signalSourceIsLive)
     }
 
     func testSessionsPersistAcrossViewModelInstances() {
