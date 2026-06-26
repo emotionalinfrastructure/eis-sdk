@@ -15,6 +15,14 @@ final class SessionViewModel: ObservableObject {
     private let processor = SignalProcessor()
     private let toneManager = ToneManager()
     private let analytics = Analytics()
+    private let store: SessionStore
+
+    init(store: SessionStore = FileSessionStore()) {
+        self.store = store
+        let state = store.load()
+        history = state.history
+        vaultEntries = state.vaultEntries
+    }
 
     /// Runs one full pipeline pass and appends the result to history and the vault.
     func runSession() {
@@ -29,6 +37,8 @@ final class SessionViewModel: ObservableObject {
             SessionRecord(timestamp: Date(), tone: tone, average: average, coherence: coherence, trend: trend)
         )
         vaultEntries.append("Session \(history.count): \(tone) · coherence \(String(format: "%.2f", coherence))")
+
+        store.save(SessionStoreState(history: history, vaultEntries: vaultEntries))
     }
 
     /// Mean coherence across all recorded sessions.

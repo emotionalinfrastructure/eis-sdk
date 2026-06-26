@@ -41,10 +41,18 @@ final class AnalyticsTests: XCTestCase {
     func testTrendStable() { XCTAssertEqual(analytics.trend(of: [0.1, 0.15]), "Stable") }
 }
 
+/// In-memory test double so view-model tests never touch real disk state.
+final class InMemorySessionStore: SessionStore {
+    private var state = SessionStoreState()
+
+    func load() -> SessionStoreState { state }
+    func save(_ state: SessionStoreState) { self.state = state }
+}
+
 @MainActor
 final class SessionViewModelTests: XCTestCase {
     func testRunSessionPopulatesState() {
-        let model = SessionViewModel()
+        let model = SessionViewModel(store: InMemorySessionStore())
         model.runSession()
 
         XCTAssertEqual(model.signals.count, model.sampleCount)
@@ -54,11 +62,48 @@ final class SessionViewModelTests: XCTestCase {
     }
 
     func testAverageCoherenceAcrossSessions() {
-        let model = SessionViewModel()
+        let model = SessionViewModel(store: InMemorySessionStore())
         model.runSession()
         model.runSession()
         XCTAssertEqual(model.history.count, 2)
         XCTAssertGreaterThanOrEqual(model.averageCoherence, 0.0)
         XCTAssertLessThanOrEqual(model.averageCoherence, 1.0)
+    }
+
+    func testSessionsPersistAcrossViewModelInstances() {
+        let store = InMemorySessionStore()
+        let first = SessionViewModel(store: store)
+        first.runSession()
+        first.runSession()
+
+        let second = SessionViewModel(store: store)
+        XCTAssertEqual(second.history, first.history)
+        XCTAssertEqual(second.vaultEntries, first.vaultEntries)
+    }
+}
+
+final class FileSessionStoreTests: XCTestCase {
+    private func makeTemporaryFileURL() -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("FileSessionStoreTests-\(UUID().uuidString).json")
+    }
+
+    func testLoadWithoutExistingFileReturnsEmptyState() {
+        let store = FileSessionStore(fileURL: makeTemporaryFileURL())
+        XCTAssertEqual(store.load(), SessionStoreState())
+    }
+
+    func testSaveThenLoadRoundTrips() {
+        let fileURL = makeTemporaryFileURL()
+        defer { try? FileManager.default.removeItem(at: fileURL) }
+
+        let store = FileSessionStore(fileURL: fileURL)
+        let record = SessionRecord(timestamp: Date(), tone: "Calm / Grounded", average: -0.5, coherence: 0.9, trend: "Stable")
+        let state = SessionStoreState(history: [record], vaultEntries: ["Session 1: Calm / Grounded · coherence 0.90"])
+
+        store.save(state)
+
+        let reloaded = FileSessionStore(fileURL: fileURL).load()
+        XCTAssertEqual(reloaded, state)
     }
 }
