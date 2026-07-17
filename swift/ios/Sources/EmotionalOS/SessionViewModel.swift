@@ -15,10 +15,24 @@ final class SessionViewModel: ObservableObject {
     private let processor = SignalProcessor()
     private let toneManager = ToneManager()
     private let analytics = Analytics()
+    private let store: SessionStore
+    private let signalSource: SignalSource
+
+    init(store: SessionStore = FileSessionStore(),
+         signalSource: SignalSource = MotionSignalSource()) {
+        self.store = store
+        self.signalSource = signalSource
+        let state = store.load()
+        history = state.history
+        vaultEntries = state.vaultEntries
+    }
+
+    /// Whether sessions are currently driven by live device-motion sensors.
+    var signalSourceIsLive: Bool { signalSource.isLive }
 
     /// Runs one full pipeline pass and appends the result to history and the vault.
     func runSession() {
-        let samples = processor.generateSignals(count: sampleCount)
+        let samples = signalSource.sample(count: sampleCount)
         signals = samples
         average = processor.average(of: samples)
         tone = toneManager.interpretTone(from: average)
@@ -29,6 +43,8 @@ final class SessionViewModel: ObservableObject {
             SessionRecord(timestamp: Date(), tone: tone, average: average, coherence: coherence, trend: trend)
         )
         vaultEntries.append("Session \(history.count): \(tone) · coherence \(String(format: "%.2f", coherence))")
+
+        store.save(SessionStoreState(history: history, vaultEntries: vaultEntries))
     }
 
     /// Mean coherence across all recorded sessions.
