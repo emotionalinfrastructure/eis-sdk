@@ -81,6 +81,7 @@ final class MotionSignalSourceTests: XCTestCase {
 final class SessionViewModelTests: XCTestCase {
     func testRunSessionPopulatesState() {
         let model = SessionViewModel(store: InMemorySessionStore())
+        model.grantConsent()
         model.runSession()
 
         XCTAssertEqual(model.signals.count, model.sampleCount)
@@ -91,6 +92,7 @@ final class SessionViewModelTests: XCTestCase {
 
     func testAverageCoherenceAcrossSessions() {
         let model = SessionViewModel(store: InMemorySessionStore())
+        model.grantConsent()
         model.runSession()
         model.runSession()
         XCTAssertEqual(model.history.count, 2)
@@ -101,6 +103,7 @@ final class SessionViewModelTests: XCTestCase {
     func testRunSessionUsesInjectedSignalSource() {
         let model = SessionViewModel(store: InMemorySessionStore(),
                                      signalSource: StubSignalSource(value: 0.5))
+        model.grantConsent()
         model.runSession()
         XCTAssertEqual(model.signals, Array(repeating: 0.5, count: model.sampleCount))
         XCTAssertFalse(model.signalSourceIsLive)
@@ -109,12 +112,43 @@ final class SessionViewModelTests: XCTestCase {
     func testSessionsPersistAcrossViewModelInstances() {
         let store = InMemorySessionStore()
         let first = SessionViewModel(store: store)
+        first.grantConsent()
         first.runSession()
         first.runSession()
 
         let second = SessionViewModel(store: store)
         XCTAssertEqual(second.history, first.history)
         XCTAssertEqual(second.vaultEntries, first.vaultEntries)
+    }
+
+    func testRunSessionBlockedWithoutConsent() {
+        let model = SessionViewModel(store: InMemorySessionStore())
+        model.runSession()
+
+        XCTAssertEqual(model.consentState, .pending)
+        XCTAssertTrue(model.history.isEmpty)
+        XCTAssertTrue(model.vaultEntries.isEmpty)
+        XCTAssertEqual(model.auditEvents.map(\.eventType), ["session_blocked"])
+    }
+
+    func testConsentGateAndAuditTrail() {
+        let model = SessionViewModel(store: InMemorySessionStore(),
+                                     signalSource: StubSignalSource(value: 0.2))
+        model.grantConsent()
+        XCTAssertEqual(model.consentState, .granted)
+
+        model.runSession()
+        XCTAssertEqual(model.history.count, 1)
+        XCTAssertNotNil(model.lastCTID)
+        XCTAssertEqual(model.history.first?.ctid, model.lastCTID?.signature)
+
+        model.revokeConsent()
+        XCTAssertEqual(model.consentState, .revoked)
+        model.runSession()  // blocked
+
+        XCTAssertEqual(model.history.count, 1)
+        XCTAssertEqual(model.auditEvents.map(\.eventType),
+                       ["consent_granted", "session_run", "consent_revoked", "session_blocked"])
     }
 }
 
@@ -141,5 +175,94 @@ final class FileSessionStoreTests: XCTestCase {
 
         let reloaded = FileSessionStore(fileURL: fileURL).load()
         XCTAssertEqual(reloaded, state)
+    }
+}
+
+final class ConsentStateMachineTests: XCTestCase {
+    func testValidTransitions() {
+        XCTAssertTrue(isValidConsentTransition(from: .pending, to: .granted))
+        XCTAssertTrue(isValidConsentTransition(from: .pending, to: .revoked))
+        XCTAssertTrue(isValidConsentTransition(from: .granted, to: .revoked))
+        XCTAssertTrue(isValidConsentTransition(from: .granted, to: .expired))
+    }
+
+    func testInvalidTransitions() {
+        XCTAssertFalse(isValidConsentTransition(from: .pending, to: .expired))
+        XCTAssertFalse(isValidConsentTransition(from: .revoked, to: .granted))
+        XCTAssertFalse(isValidConsentTransition(from: .expired, to: .granted))
+        XCTAssertFalse(isValidConsentTransition(from: .granted, to: .pending))
+    }
+
+    func testMachineRejectsInvalidTransition() {
+        let machine = ConsentStateMachine()
+        XCTAssertTrue(machine.transition(to: .granted))
+        XCTAssertFalse(machine.transition(to: .pending))
+        XCTAssertEqual(machine.state, .granted)
+    }
+}
+
+final class AuditLoggerTests: XCTestCase {
+    func testAppendOnlyOrdering() {
+        let logger = AuditLogger()
+        logger.log(eventType: "a", userId: "u")
+        logger.log(eventType: "b", userId: "u", data: ["k": "v"])
+        XCTAssertEqual(logger.events.map(\.eventType), ["a", "b"])
+        XCTAssertEqual(logger.events.last?.data, ["k": "v"])
+    }
+}
+
+final class CTIDServiceTests: XCTestCase {
+    private let metadata = ConsentTransactionID.Metadata(
+        platform: "mobile", consentMethod: "explicit", geographicRegion: "unknown", kid: nil)
+
+    func testGenerateProducesVerifiableCTID() throws {
+        let service = CTIDService(secret: "test-secret")
+        let ctid = try service.generate(userId: "user-1", dataTiers: [1, 2], metadata: metadata)
+
+        XCTAssertEqual(ctid.version, "1.2")
+        XCTAssertEqual(ctid.signature.count, 64)
+        XCTAssertEqual(ctid.sessionId.count, 24)
+        XCTAssertTrue(service.verify(ctid))
+    }
+
+    func testTamperedCTIDFailsVerification() throws {
+        let service = CTIDService(secret: "test-secret")
+        let ctid = try service.generate(userId: "user-1", dataTiers: [1], metadata: metadata)
+        let tampered = ConsentTransactionID(
+            version: ctid.version, userId: "attacker", sessionId: ctid.sessionId,
+            timestamp: ctid.timestamp, dataTiers: ctid.dataTiers, expiry: ctid.expiry,
+            parentCtid: ctid.parentCtid, signature: ctid.signature, metadata: ctid.metadata)
+        XCTAssertFalse(service.verify(tampered))
+    }
+
+    func testWrongSecretFailsVerification() throws {
+        let ctid = try CTIDService(secret: "secret-a").generate(userId: "u", dataTiers: [1], metadata: metadata)
+        XCTAssertFalse(CTIDService(secret: "secret-b").verify(ctid))
+    }
+
+    func testExpiredCTIDFailsVerification() throws {
+        let service = CTIDService(secret: "test-secret")
+        let ctid = try service.generate(userId: "u", dataTiers: [1], metadata: metadata, expiryDays: -1)
+        XCTAssertFalse(service.verify(ctid))
+    }
+
+    func testMissingSecretThrows() {
+        XCTAssertThrowsError(try CTIDService(secret: "").generate(userId: "u", dataTiers: [1], metadata: metadata))
+    }
+}
+
+final class CanonicalJSONTests: XCTestCase {
+    func testSortsKeysAndMatchesCompactForm() {
+        let value = CanonicalJSON.Value.object([
+            "b": .int(2),
+            "a": .string("x"),
+            "c": .array([.int(1), .int(2)]),
+            "d": .null,
+        ])
+        XCTAssertEqual(CanonicalJSON.stringify(value), "{\"a\":\"x\",\"b\":2,\"c\":[1,2],\"d\":null}")
+    }
+
+    func testEscapesControlCharacters() {
+        XCTAssertEqual(CanonicalJSON.stringify(.string("a\"b\n")), "\"a\\\"b\\n\"")
     }
 }

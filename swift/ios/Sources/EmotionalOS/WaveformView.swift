@@ -31,7 +31,14 @@ struct WaveformView: View {
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .disabled(model.consentState != .granted)
                 .padding(.horizontal)
+
+                if model.consentState != .granted {
+                    Text("Grant consent in Settings to run a session.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
 
                 Spacer()
             }

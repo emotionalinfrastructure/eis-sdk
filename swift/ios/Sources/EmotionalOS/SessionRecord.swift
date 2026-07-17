@@ -8,4 +8,6 @@ struct SessionRecord: Identifiable, Codable, Equatable {
     let average: Double
     let coherence: Double
     let trend: String
+    /// Signature of the Consent Transaction ID minted for this session, if any.
+    var ctid: String? = nil
 }
